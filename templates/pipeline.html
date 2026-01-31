@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4 animate-fade">
+    <!-- Pipeline Status Header -->
+    <div class="col-12">
+        <div
+            class="card bg-white p-4 border-0 shadow-sm border-start border-4 {% if status == 'Success' %}border-success{% else %}border-danger{% endif %}">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="text-muted small text-uppercase fw-bold mb-1 tracking-wider">Overall Pipeline Status</h5>
+                    <h3 class="fw-bold mb-0 {% if status == 'Success' %}text-success{% else %}text-danger{% endif %}">
+                        <i
+                            class="fas {% if status == 'Success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} me-2"></i>
+                        {{ status | upper }}
+                    </h3>
+                </div>
+                <div class="text-end">
+                    <span class="badge badge-primary-soft">
+                        <i class="fas fa-clock me-1"></i> {{ last_updated }}
+                    </span>
+                    <div class="mt-1 text-muted small">Commit: <code>{{ commit_hash }}</code></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Summary Card -->
+    <div class="col-lg-5">
+        <div class="card h-100 p-4">
+            <h5 class="fw-bold mb-4">Change Summary</h5>
+
+            <div class="price-change-box d-flex align-items-center justify-content-center mb-4 p-4 bg-light rounded-4">
+                <div class="text-center">
+                    <div class="text-muted small mb-1">Old Price</div>
+                    <div class="h4 text-muted text-decoration-line-through">₹{{ old_price }}</div>
+                </div>
+                <div class="mx-4 text-primary">
+                    <i class="fas fa-arrow-right fa-lg"></i>
+                </div>
+                <div class="text-center">
+                    <div class="text-primary small mb-1">New Price</div>
+                    <div class="h3 fw-bold">₹{{ new_price }}</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="text-muted small fw-bold text-uppercase d-block mb-1">Commit Message</label>
+                <p class="fst-italic border-start border-3 ps-3 py-1 bg-light rounded-end">{{ commit_message }}</p>
+            </div>
+
+            <div class="mb-0">
+                <label class="text-muted small fw-bold text-uppercase d-block mb-1">Trigger Source</label>
+                <div class="d-flex align-items-center">
+                    <i class="fab fa-github fa-lg me-2"></i>
+                    <span class="fw-medium">{{ trigger }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pipeline Flow Visualizer -->
+    <div class="col-lg-7">
+        <div class="card h-100 p-4">
+            <h5 class="fw-bold mb-4">Pipeline Execution Flow</h5>
+
+            <div class="pipeline-container ps-2">
+                <div class="pipeline-step">
+                    <div class="step-icon"><i class="fas fa-check"></i></div>
+                    <div class="step-content">
+                        <h6>Code pushed to GitHub</h6>
+                        <p>Webhook triggered automated pipeline execution</p>
+                    </div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="step-icon"><i class="fas fa-check"></i></div>
+                    <div class="step-content">
+                        <h6>Jenkins Pipeline Triggered</h6>
+                        <p>Build job started on Jenkins master node</p>
+                    </div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="step-icon"><i class="fas fa-check"></i></div>
+                    <div class="step-content">
+                        <h6>Build Successful</h6>
+                        <p>Artifacts generated and verified</p>
+                    </div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="step-icon"><i class="fas fa-check"></i></div>
+                    <div class="step-content">
+                        <h6>Application Deployed</h6>
+                        <p>Updated data pushed to production environment</p>
+                    </div>
+                </div>
+
+                <div class="pipeline-step">
+                    <div class="step-icon"><i class="fas fa-check"></i></div>
+                    <div class="step-content">
+                        <h6>Website Updated</h6>
+                        <p>Real-time UI reflects latest price changes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
