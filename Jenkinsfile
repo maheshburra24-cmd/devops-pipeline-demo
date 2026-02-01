@@ -3,19 +3,18 @@ pipeline {
 
     stages {
 
-        stage('Checkout SCM') {
+        stage('Checkout Code') {
             steps {
-                echo 'Code already checked out from GitHub'
+                echo 'Checking out code from GitHub'
+                checkout scm
             }
         }
 
-        stage('Setup Python Virtual Environment & Install Dependencies') {
+        stage('Install Dependencies') {
             steps {
                 sh '''
-                  python3 -m venv venv
-                  . venv/bin/activate
-                  pip install --upgrade pip
-                  pip install -r requirements.txt
+                  apt update
+                  apt install -y python3 python3-flask
                 '''
             }
         }
@@ -23,7 +22,10 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 sh '''
-                  . venv/bin/activate
+                  echo "Stopping old Flask app (if running)..."
+                  pkill -f app.py || true
+
+                  echo "Starting new Flask app..."
                   nohup python3 app.py > app.log 2>&1 &
                 '''
             }
@@ -32,10 +34,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Application deployed successfully!'
+            echo '✅ Deployment successful. Website updated.'
         }
         failure {
-            echo '❌ Pipeline failed. Check logs.'
+            echo '❌ Deployment failed. Check logs.'
         }
     }
 }
