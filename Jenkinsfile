@@ -10,15 +10,6 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                  apt update
-                  apt install -y python3 python3-flask
-                '''
-            }
-        }
-
         stage('Deploy Application') {
             steps {
                 sh '''
