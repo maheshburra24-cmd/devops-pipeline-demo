@@ -2,17 +2,16 @@ pipeline {
     agent any
 
     stages {
-
-        stage('Clone Repository') {
+        stage('Checkout SCM') {
             steps {
-                git 'https://github.com/maheshburra24-cmd/devops-pipeline-demo.git'
+                echo 'Code already checked out from GitHub'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 sh '''
-                pip3 install -r requirements.txt
+                  pip3 install -r requirements.txt
                 '''
             }
         }
@@ -20,8 +19,7 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 sh '''
-                pkill -f app.py || true
-                nohup python3 app.py > app.log 2>&1 &
+                  python3 app.py &
                 '''
             }
         }
