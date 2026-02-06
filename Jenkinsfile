@@ -3,25 +3,9 @@ pipeline {
 
     stages {
 
-        stage('SCM Context (for Webhook)') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Clone Repository') {
-            steps {
-                sh '''
-                  rm -rf devops-pipeline-demo
-                  git clone https://github.com/maheshburra24-cmd/devops-pipeline-demo.git
-                '''
-            }
-        }
-
         stage('Record Deployment Metadata') {
             steps {
                 sh '''
-                  cd devops-pipeline-demo
                   TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
                   COMMIT_HASH=$(git rev-parse --short HEAD)
                   COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
@@ -43,7 +27,6 @@ pipeline {
         stage('Build & Deploy Website') {
             steps {
                 sh '''
-                  cd devops-pipeline-demo
                   docker build -t price-web .
                   docker stop price-web || true
                   docker rm price-web || true
