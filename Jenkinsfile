@@ -1,11 +1,15 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 3, unit: 'MINUTES')
+    }
+
     stages {
 
         stage('Checkout Code') {
             steps {
-                echo 'Checking out code from GitHub'
                 checkout scm
             }
         }
@@ -13,20 +17,20 @@ pipeline {
         stage('Record Deployment Metadata') {
             steps {
                 sh '''
-                TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
-                COMMIT_HASH=$(git rev-parse --short HEAD)
-                COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
-                NEW_PRICE=$(cat data/price.txt)
-                OLD_PRICE=$(git show HEAD~1:data/price.txt 2>/dev/null || echo "N/A")
+                    TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+                    COMMIT_HASH=$(git rev-parse --short HEAD)
+                    COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
+                    NEW_PRICE=$(cat data/price.txt)
+                    OLD_PRICE=$(git show HEAD~1:data/price.txt 2>/dev/null || echo "N/A")
 
-                echo "$TIMESTAMP" > data/deploy_info.txt
-                echo "$COMMIT_HASH" >> data/deploy_info.txt
-                echo "Success" >> data/deploy_info.txt
-                echo "GitHub Push" >> data/deploy_info.txt
+                    echo "$TIMESTAMP" > data/deploy_info.txt
+                    echo "$COMMIT_HASH" >> data/deploy_info.txt
+                    echo "Success" >> data/deploy_info.txt
+                    echo "GitHub Push" >> data/deploy_info.txt
 
-                echo "$OLD_PRICE" > data/change_log.txt
-                echo "$NEW_PRICE" >> data/change_log.txt
-                echo "$COMMIT_MSG" >> data/change_log.txt
+                    echo "$OLD_PRICE" > data/change_log.txt
+                    echo "$NEW_PRICE" >> data/change_log.txt
+                    echo "$COMMIT_MSG" >> data/change_log.txt
                 '''
             }
         }
@@ -34,23 +38,15 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 sh '''
-                cd /var/jenkins_home/workspace/devops-price-pipeline
+                    echo "Restarting Flask app safely"
 
-                # Ensure virtual environment exists
-                if [ ! -d "venv" ]; then
-                  apt update
-                  apt install -y python3 python3-venv python3-pip
-                  python3 -m venv venv
-                  ./venv/bin/pip install -r requirements.txt
-                fi
+                    pkill -f app.py || true
 
-                # Start app only if not already running
-                if pgrep -f app.py > /dev/null; then
-                  echo "Flask app already running"
-                else
-                  echo "Starting Flask app"
-                  nohup ./venv/bin/python app.py > app.log 2>&1 </dev/null &
-                fi
+                    cd /var/jenkins_home/workspace/devops-price-pipeline
+
+                    ./venv/bin/python app.py &
+
+                    sleep 2
                 '''
             }
         }
@@ -58,10 +54,10 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment successful. Website updated.'
+            echo 'Deployment completed'
         }
         failure {
-            echo 'Deployment failed. Check logs.'
+            echo 'Deployment failed'
         }
     }
 }
