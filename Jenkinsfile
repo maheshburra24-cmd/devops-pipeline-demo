@@ -9,17 +9,11 @@ pipeline {
             }
         }
 
-        stage('Setup Environment') {
+        stage('Setup Python') {
             steps {
                 sh '''
                     apt update
                     apt install -y python3 python3-venv python3-pip
-
-                    if [ ! -d "venv" ]; then
-                      python3 -m venv venv
-                      . venv/bin/activate
-                      pip install -r requirements.txt
-                    fi
                 '''
             }
         }
@@ -27,7 +21,13 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 sh '''
-                    pkill -f app.py || true
+                    if [ ! -d venv ]; then
+                        python3 -m venv venv
+                        . venv/bin/activate
+                        pip install -r requirements.txt
+                    fi
+
+                    pkill -9 -f app.py || true
                     nohup ./venv/bin/python app.py > app.log 2>&1 &
                 '''
             }
@@ -36,7 +36,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Price updated and website refreshed'
+            echo "✅ Price updated and website refreshed"
         }
     }
 }
