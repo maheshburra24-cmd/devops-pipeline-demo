@@ -5,7 +5,6 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                echo '📥 Checking out code from GitHub'
                 checkout scm
             }
         }
@@ -13,8 +12,6 @@ pipeline {
         stage('Record Deployment Metadata') {
             steps {
                 sh '''
-                  echo "📝 Recording deployment metadata..."
-
                   TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
                   COMMIT_HASH=$(git rev-parse --short HEAD)
                   COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
@@ -37,10 +34,7 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 sh '''
-                  echo "🚀 Deploying Flask application..."
-
                   pkill -f app.py || true
-
                   nohup python3 app.py > app.log 2>&1 &
                 '''
             }
@@ -52,7 +46,7 @@ pipeline {
             echo '✅ Deployment successful – website updated'
         }
         failure {
-            echo '❌ Deployment failed – check logs'
+            echo '❌ Deployment failed'
         }
     }
 }
