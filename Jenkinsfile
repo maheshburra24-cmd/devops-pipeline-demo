@@ -3,23 +3,22 @@ pipeline {
 
     stages {
 
-        stage('Deploy on EC2 Host') {
+        stage('Install Dependencies') {
             steps {
                 sh '''
-                  echo "Deploying application on EC2 host..."
+                  python3 --version
+                  pip3 install -r requirements.txt
+                '''
+            }
+        }
 
-                  ssh -o StrictHostKeyChecking=no ubuntu@localhost << 'EOF'
-                    cd /home/ubuntu/devops-pipeline-demo
+        stage('Deploy') {
+            steps {
+                sh '''
+                  echo "Restarting Flask app..."
 
-                    echo "Pulling latest code..."
-                    git pull origin main
-
-                    echo "Stopping old Flask app..."
-                    pkill -f app.py || true
-
-                    echo "Starting Flask app..."
-                    nohup python3 app.py > app.log 2>&1 &
-                  EOF
+                  pkill -f app.py || true
+                  nohup python3 app.py > app.log 2>&1 &
                 '''
             }
         }
