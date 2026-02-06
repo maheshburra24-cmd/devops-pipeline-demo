@@ -3,12 +3,22 @@ pipeline {
 
     stages {
 
+        stage('Checkout Code') {
+            steps {
+                echo '📥 Checking out code from GitHub'
+                checkout scm
+            }
+        }
+
         stage('Record Deployment Metadata') {
             steps {
                 sh '''
+                  echo "📝 Recording deployment metadata..."
+
                   TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
                   COMMIT_HASH=$(git rev-parse --short HEAD)
                   COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
+
                   NEW_PRICE=$(cat data/price.txt)
                   OLD_PRICE=$(git show HEAD~1:data/price.txt 2>/dev/null || echo "N/A")
 
@@ -24,13 +34,14 @@ pipeline {
             }
         }
 
-        stage('Build & Deploy Website') {
+        stage('Deploy Application') {
             steps {
                 sh '''
-                  docker build -t price-web .
-                  docker stop price-web || true
-                  docker rm price-web || true
-                  docker run -d -p 5000:5000 --name price-web price-web
+                  echo "🚀 Deploying Flask application..."
+
+                  pkill -f app.py || true
+
+                  nohup python3 app.py > app.log 2>&1 &
                 '''
             }
         }
@@ -38,10 +49,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Deployment successful – website updated"
+            echo '✅ Deployment successful – website updated'
         }
         failure {
-            echo "❌ Deployment failed"
+            echo '❌ Deployment failed – check logs'
         }
     }
 }
