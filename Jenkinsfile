@@ -5,6 +5,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
+                echo '📥 Checking out latest code'
                 checkout scm
             }
         }
@@ -12,6 +13,8 @@ pipeline {
         stage('Record Deployment Metadata') {
             steps {
                 sh '''
+                  echo "📝 Recording deployment metadata..."
+
                   TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
                   COMMIT_HASH=$(git rev-parse --short HEAD)
                   COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
@@ -31,11 +34,27 @@ pipeline {
             }
         }
 
-        stage('Deploy Application') {
+        stage('Build Docker Image') {
             steps {
                 sh '''
-                  pkill -f app.py || true
-                  nohup python3 app.py > app.log 2>&1 &
+                  echo "🐳 Building new Docker image..."
+                  docker build -t price-web:latest .
+                '''
+            }
+        }
+
+        stage('Deploy Website Container') {
+            steps {
+                sh '''
+                  echo "🚀 Deploying website..."
+
+                  docker stop price-web || true
+                  docker rm price-web || true
+
+                  docker run -d \
+                    -p 5000:5000 \
+                    --name price-web \
+                    price-web:latest
                 '''
             }
         }
@@ -46,7 +65,7 @@ pipeline {
             echo '✅ Deployment successful – website updated'
         }
         failure {
-            echo '❌ Deployment failed'
+            echo '❌ Deployment failed – check logs'
         }
     }
 }
