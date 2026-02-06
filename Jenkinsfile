@@ -1,31 +1,25 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.10-slim'
-            args '-u root'
-        }
-    }
+    agent any
 
     stages {
 
-        stage('Install Dependencies') {
+        stage('Deploy on EC2 Host') {
             steps {
                 sh '''
-                  python --version
-                  pip install --upgrade pip
-                  pip install -r requirements.txt
-                '''
-            }
-        }
+                  echo "Deploying application on EC2 host..."
 
-        stage('Deploy') {
-            steps {
-                sh '''
-                  echo "Stopping old Flask app if running..."
-                  pkill -f app.py || true
+                  ssh -o StrictHostKeyChecking=no ubuntu@localhost << 'EOF'
+                    cd /home/ubuntu/devops-pipeline-demo
 
-                  echo "Starting Flask app..."
-                  nohup python app.py > app.log 2>&1 &
+                    echo "Pulling latest code..."
+                    git pull origin main
+
+                    echo "Stopping old Flask app..."
+                    pkill -f app.py || true
+
+                    echo "Starting Flask app..."
+                    nohup python3 app.py > app.log 2>&1 &
+                  EOF
                 '''
             }
         }
@@ -33,7 +27,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Deployment successful'
+            echo '✅ Deployment successful – website updated'
         }
         failure {
             echo '❌ Deployment failed'
