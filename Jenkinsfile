@@ -6,14 +6,20 @@ pipeline {
         stage('Setup Virtual Environment') {
             steps {
                 sh '''
+                  set -e
+
+                  echo "Using Python:"
                   python3 --version
 
-                  # Create virtual environment if not exists
                   if [ ! -d "venv" ]; then
+                    echo "Creating virtual environment..."
                     python3 -m venv venv
                   fi
 
+                  echo "Activating virtual environment..."
                   . venv/bin/activate
+
+                  echo "Upgrading pip and installing dependencies..."
                   pip install --upgrade pip
                   pip install -r requirements.txt
                 '''
@@ -23,6 +29,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
+                  set -e
+
                   echo "Restarting Flask app..."
 
                   pkill -f app.py || true
