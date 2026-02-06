@@ -14,40 +14,30 @@ pipeline {
             }
         }
 
-        stage('Record Deployment Metadata') {
+        stage('Record Change Info') {
             steps {
                 sh '''
-                  TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
-                  COMMIT_HASH=$(git rev-parse --short HEAD)
-                  COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
-                  NEW_PRICE=$(cat data/price.txt)
-                  OLD_PRICE=$(git show HEAD~1:data/price.txt 2>/dev/null || echo "N/A")
+                TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+                COMMIT=$(git rev-parse --short HEAD)
+                PRICE=$(cat data/price.txt)
 
-                  echo "$TIMESTAMP" > data/deploy_info.txt
-                  echo "$COMMIT_HASH" >> data/deploy_info.txt
-                  echo "Success" >> data/deploy_info.txt
-                  echo "GitHub Push" >> data/deploy_info.txt
+                echo "$TIMESTAMP" > data/deploy_info.txt
+                echo "$COMMIT" >> data/deploy_info.txt
+                echo "SUCCESS" >> data/deploy_info.txt
+                echo "GitHub Push" >> data/deploy_info.txt
 
-                  echo "$OLD_PRICE" > data/change_log.txt
-                  echo "$NEW_PRICE" >> data/change_log.txt
-                  echo "$COMMIT_MSG" >> data/change_log.txt
+                echo "Updated price: $PRICE"
                 '''
-            }
-        }
-
-        stage('Deployment Info') {
-            steps {
-                echo 'Code updated. Flask app will reflect changes automatically.'
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully'
+            echo "CI pipeline finished successfully"
         }
         failure {
-            echo 'Pipeline failed'
+            echo "CI pipeline failed"
         }
     }
 }
