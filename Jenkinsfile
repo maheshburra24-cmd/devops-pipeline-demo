@@ -32,12 +32,12 @@ pipeline {
                 sh '''
                   set -e
 
-                  echo "Restarting Flask app..."
-
+                  echo "Stopping old Flask app (if running)..."
                   pkill -f app.py || true
 
+                  echo "Starting Flask app..."
                   . ./venv/bin/activate
-                  nohup python app.py > app.log 2>&1 &
+                  python app.py &
                 '''
             }
         }
