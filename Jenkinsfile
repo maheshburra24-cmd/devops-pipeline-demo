@@ -2,27 +2,32 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Deploy Application') {
+        stage('Setup Environment') {
             steps {
                 sh '''
-                    if ! command -v python3 >/dev/null 2>&1; then
-                      apt update
-                      apt install -y python3 python3-venv python3-pip
-                    fi
+                    apt update
+                    apt install -y python3 python3-venv python3-pip
 
                     if [ ! -d "venv" ]; then
                       python3 -m venv venv
                       . venv/bin/activate
                       pip install -r requirements.txt
                     fi
+                '''
+            }
+        }
 
-                    pkill -9 -f app.py || true
+        stage('Deploy Application') {
+            steps {
+                sh '''
+                    pkill -f app.py || true
                     nohup ./venv/bin/python app.py > app.log 2>&1 &
                 '''
             }
@@ -31,7 +36,7 @@ pipeline {
 
     post {
         success {
-            echo 'Website updated successfully'
+            echo '✅ Price updated and website refreshed'
         }
     }
 }
