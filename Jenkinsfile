@@ -6,8 +6,8 @@ pipeline {
         stage('Setup Python') {
             steps {
                 sh '''
-                  apt-get update
-                  apt-get install -y python3 python3-pip
+                  sudo apt-get update
+                  sudo apt-get install -y python3 python3-pip
                 '''
             }
         }
