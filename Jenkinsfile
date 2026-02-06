@@ -15,7 +15,6 @@ pipeline {
                 sh '''
                     TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
                     COMMIT_HASH=$(git rev-parse --short HEAD)
-                    COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
                     NEW_PRICE=$(cat data/price.txt)
 
                     echo "$TIMESTAMP" > data/deploy_info.txt
@@ -28,12 +27,14 @@ pipeline {
             }
         }
 
-        stage('Sync Code to Production Directory') {
+        stage('Deploy Application') {
             steps {
                 sh '''
-                    echo "Syncing latest code to live application directory..."
-                    cd /home/ubuntu/devops-pipeline-demo
-                    git pull origin main
+                    echo "Stopping existing Flask app if running..."
+                    pkill -f app.py || true
+
+                    echo "Starting Flask app from Jenkins workspace..."
+                    nohup ./venv/bin/python app.py > app.log 2>&1 &
                 '''
             }
         }
