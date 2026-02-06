@@ -35,4 +35,13 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo "✅ Deployment successful – website updated"
+        }
+        failure {
+            echo "❌ Deployment failed"
+        }
+    }
 }
