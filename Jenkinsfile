@@ -6,6 +6,7 @@ pipeline {
         stage('Update Code') {
             steps {
                 sh '''
+                  git config --global --add safe.directory /home/ubuntu/devops-pipeline-demo
                   cd /home/ubuntu/devops-pipeline-demo
                   git pull origin main
                 '''
