@@ -3,42 +3,44 @@ pipeline {
 
     stages {
 
-        stage('Setup Virtual Environment') {
+        stage('Checkout Code') {
+            steps {
+                echo 'Checking out code from GitHub'
+                checkout scm
+            }
+        }
+
+        stage('Record Deployment Metadata') {
             steps {
                 sh '''
-                  set -e
+                TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+                COMMIT_HASH=$(git rev-parse --short HEAD)
+                COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d "'")
+                NEW_PRICE=$(cat data/price.txt)
+                OLD_PRICE=$(git show HEAD~1:data/price.txt 2>/dev/null || echo "N/A")
 
-                  echo "Using Python:"
-                  python3 --version
+                echo "$TIMESTAMP" > data/deploy_info.txt
+                echo "$COMMIT_HASH" >> data/deploy_info.txt
+                echo "Success" >> data/deploy_info.txt
+                echo "GitHub Push" >> data/deploy_info.txt
 
-                  echo "Cleaning old virtual environment..."
-                  rm -rf venv
-
-                  echo "Creating virtual environment..."
-                  python3 -m venv venv
-
-                  echo "Activating virtual environment..."
-                  . ./venv/bin/activate
-
-                  echo "Installing dependencies..."
-                  pip install --upgrade pip
-                  pip install -r requirements.txt
+                echo "$OLD_PRICE" > data/change_log.txt
+                echo "$NEW_PRICE" >> data/change_log.txt
+                echo "$COMMIT_MSG" >> data/change_log.txt
                 '''
             }
         }
 
-        stage('Deploy') {
+        stage('Build & Deploy Website Container') {
             steps {
                 sh '''
-                  set -e
+                echo "Building website Docker image..."
+                docker build -t price-web .
 
-                  echo "Stopping any existing Flask app..."
-                  pkill -f app.py || true
-
-                  echo "Starting Flask app detached from Jenkins..."
-                  . ./venv/bin/activate
-
-                  setsid python app.py > app.log 2>&1 < /dev/null &
+                echo "Restarting website container..."
+                docker stop price-web || true
+                docker rm price-web || true
+                docker run -d --name price-web -p 5000:5000 price-web
                 '''
             }
         }
@@ -46,10 +48,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Deployment successful – website updated'
+            echo '✅ Deployment successful. Website updated.'
         }
         failure {
-            echo '❌ Deployment failed'
+            echo '❌ Deployment failed. Check logs.'
         }
     }
 }
