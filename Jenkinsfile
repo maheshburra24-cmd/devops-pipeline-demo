@@ -11,10 +11,11 @@ pipeline {
                   echo "Using Python:"
                   python3 --version
 
-                  if [ ! -d "venv" ]; then
-                    echo "Creating virtual environment..."
-                    python3 -m venv venv
-                  fi
+                  echo "Removing old virtual environment (if any)..."
+                  rm -rf venv
+
+                  echo "Creating fresh virtual environment..."
+                  python3 -m venv venv
 
                   echo "Activating virtual environment..."
                   . ./venv/bin/activate
