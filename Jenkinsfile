@@ -11,10 +11,10 @@ pipeline {
                   echo "Using Python:"
                   python3 --version
 
-                  echo "Removing old virtual environment (if any)..."
+                  echo "Cleaning old virtual environment..."
                   rm -rf venv
 
-                  echo "Creating fresh virtual environment..."
+                  echo "Creating virtual environment..."
                   python3 -m venv venv
 
                   echo "Activating virtual environment..."
@@ -32,12 +32,13 @@ pipeline {
                 sh '''
                   set -e
 
-                  echo "Stopping old Flask app (if running)..."
+                  echo "Stopping any existing Flask app..."
                   pkill -f app.py || true
 
-                  echo "Starting Flask app..."
+                  echo "Starting Flask app detached from Jenkins..."
                   . ./venv/bin/activate
-                  python app.py &
+
+                  setsid python app.py > app.log 2>&1 < /dev/null &
                 '''
             }
         }
