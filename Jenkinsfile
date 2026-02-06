@@ -17,9 +17,9 @@ pipeline {
                   fi
 
                   echo "Activating virtual environment..."
-                  . venv/bin/activate
+                  . ./venv/bin/activate
 
-                  echo "Upgrading pip and installing dependencies..."
+                  echo "Installing dependencies..."
                   pip install --upgrade pip
                   pip install -r requirements.txt
                 '''
@@ -35,7 +35,7 @@ pipeline {
 
                   pkill -f app.py || true
 
-                  . venv/bin/activate
+                  . ./venv/bin/activate
                   nohup python app.py > app.log 2>&1 &
                 '''
             }
